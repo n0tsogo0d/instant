@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"math"
 	"net/http"
 	"strconv"
 	"strings"
@@ -160,25 +159,12 @@ func handlePlaylist(w http.ResponseWriter, r *http.Request) {
 		width := q.Get("width")
 		bitrate := q.Get("bitrate")
 
-		for i := 0.00; i < length; i += duration {
+		for _, v := range m3u8.PlaylistSegments(length, duration) {
 			segments = append(segments, m3u8.SegmentItem{
-				Duration: duration,
+				Duration: v[1],
 				URI: fmt.Sprintf("segment?type=video&file=%s&start=%.4f"+
 					"&duration=%.4f&height=%s&width=%s&bitrate=%s",
-					probe.Format.Filename, i, duration, height, width, bitrate),
-			})
-		}
-
-		// this is important for the last segment
-		// TODO: This has the wrong start, need to fix...
-		remainder := math.Mod(length, duration)
-		if remainder > 0 {
-			segments = append(segments, m3u8.SegmentItem{
-				Duration: duration,
-				URI: fmt.Sprintf("segment?type=video&file=%s&start=%.4f"+
-					"&duration=%.4f&height=%s&width=%s&bitrate=%s",
-					probe.Format.Filename, duration-remainder, remainder,
-					height, width, bitrate),
+					probe.Format.Filename, v[0], v[1], height, width, bitrate),
 			})
 		}
 
@@ -190,18 +176,24 @@ func handlePlaylist(w http.ResponseWriter, r *http.Request) {
 		}
 	case "subtitle":
 		index := q.Get("index")
-		duration, _ := strconv.ParseFloat(probe.Format.Duration, 64)
+		segments := make([]m3u8.SegmentItem, 0)
+		length, _ := strconv.ParseFloat(probe.Format.Duration, 64)
+		duration := 60.0
+
+		for _, v := range m3u8.PlaylistSegments(length, duration) {
+			segments = append(segments, m3u8.SegmentItem{
+				Duration: v[1],
+				URI: fmt.Sprintf("segment?type=subtitle&file=%s&index=%s"+
+					"&start=%.4f&duration=%.4f", probe.Format.Filename, index,
+					v[0], v[1]),
+			})
+		}
 
 		playlist = m3u8.Playlist{
 			Version:        3,
 			Type:           "VOD",
 			TargetDuration: duration,
-			Segments: []m3u8.SegmentItem{{
-				Duration: duration,
-				URI: fmt.Sprintf("segment?type=subtitle&file=%s&index=%s"+
-					"&start=0&duration=%.4f", probe.Format.Filename, index,
-					duration),
-			}},
+			Segments:       segments,
 		}
 	case "audio":
 		length, _ := strconv.ParseFloat(probe.Format.Duration, 64)
@@ -209,24 +201,12 @@ func handlePlaylist(w http.ResponseWriter, r *http.Request) {
 		bitrate := q.Get("bitrate")
 		segments := make([]m3u8.SegmentItem, 0)
 
-		for i := 0.00; i < length; i += duration {
+		for _, v := range m3u8.PlaylistSegments(length, duration) {
 			segments = append(segments, m3u8.SegmentItem{
-				Duration: duration,
+				Duration: v[1],
 				URI: fmt.Sprintf("segment?type=audio&file=%s&start=%.4f"+
-					"&duration=%.4f&bitrate=%s", probe.Format.Filename, i,
-					duration, bitrate),
-			})
-		}
-
-		// this is important for the last segment
-		// TODO: This has the wrong start, need to fix...
-		remainder := math.Mod(length, duration)
-		if remainder > 0 {
-			segments = append(segments, m3u8.SegmentItem{
-				Duration: duration,
-				URI: fmt.Sprintf("segment?type=audio&file=%s&start=%.4f"+
-					"&duration=%.4f&bitrate=%s", probe.Format.Filename,
-					duration-remainder, remainder, bitrate),
+					"&duration=%.4f&bitrate=%s", probe.Format.Filename, v[0],
+					v[1], bitrate),
 			})
 		}
 

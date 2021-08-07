@@ -21,7 +21,10 @@
 // #EXT-X-ENDLIST
 package m3u8
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+)
 
 const (
 	TypeSubtitles = "SUBTITLES"
@@ -131,4 +134,21 @@ func boolToyesNo(b bool) string {
 	}
 
 	return "NO"
+}
+
+// PlaylistSegments calculates and returns all segments for the total
+// file length and segment duration as: [[start, duration]]
+func PlaylistSegments(length, duration float64) [][]float64 {
+	s := make([][]float64, 0)
+
+	for i := 0.00; i+duration <= length; i += duration {
+		s = append(s, []float64{i, duration})
+	}
+
+	remainder := math.Mod(length, duration)
+	if remainder > 0 {
+		s = append(s, []float64{length - remainder, remainder})
+	}
+
+	return s
 }
