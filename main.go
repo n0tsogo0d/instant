@@ -55,6 +55,14 @@ func handlePoster(w http.ResponseWriter, r *http.Request) {
 	w.Write(res)
 }
 
+// handlePlaylist returns three types of playlists:
+// - primary playlist: this contains information for all sub-playlists
+//   like multiple video resolutions, audio streams, subtitle tracks, etc.
+// - video playlist
+// - audio playlist
+// - subtitle playlist
+// For more information simply stream something, open the developer
+// console and see what requests are being made. It's actually pretty logical.
 func handlePlaylist(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 	file := q.Get("file")
@@ -72,6 +80,7 @@ func handlePlaylist(w http.ResponseWriter, r *http.Request) {
 		var video ffmpeg.Stream
 		media := make([]m3u8.MediaItem, 0)
 
+		// this is hardcoded right now, will need to change in the future
 		media = append(media, m3u8.MediaItem{
 			Type:       m3u8.TypeAudio,
 			GroupID:    "stereo",
@@ -236,6 +245,7 @@ func handlePlaylist(w http.ResponseWriter, r *http.Request) {
 	w.Write(playlist.Bytes())
 }
 
+// handleSegment returns on-demand segments for audio/subtitle/video
 func handleSegment(w http.ResponseWriter, r *http.Request) {
 	var res []byte
 	var err error

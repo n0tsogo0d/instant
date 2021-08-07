@@ -34,7 +34,7 @@ const (
 
 type (
 	Playlist struct {
-		Type           string // VOD
+		Type           string
 		Version        int
 		TargetDuration float64
 		MediaSequence  int

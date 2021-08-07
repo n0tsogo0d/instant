@@ -1,5 +1,3 @@
-// ffprobe is a go wrapper around ffprobe that converts the ffprobe nicely
-// into a struct
 package ffmpeg
 
 import (
@@ -100,7 +98,6 @@ type (
 	}
 )
 
-// Probe returns information about a file
 func Probe(URL string) (*Data, error) {
 	var data Data
 
