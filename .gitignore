@@ -1,0 +1,12 @@
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.mkv
+*.mp4
+*.ts
+*.vtt
+*.vt
+tmp/

@@ -1,0 +1,48 @@
+<html>
+
+<head>
+    <title>Instant</title>
+</head>
+<style>
+    body {
+        margin: 0;
+        font-family: 'Arial';
+        background-color: black;
+    }
+
+    video {
+        height: 100vh;
+        width: 100vw;
+    }
+</style>
+
+<body>
+    <script src="/static/hls.js"></script>
+
+    <video id="player" controls></video>
+
+    <script>
+        var file = new URLSearchParams(window.location.search).get('file')
+        var video = document.getElementById('player');
+        video.setAttribute('poster', '/api/poster?file='+file)
+
+        if (Hls.isSupported()) {
+            var hls = new Hls({
+                debug: true,
+                testBandwidth: false,
+            });
+            hls.loadSource('/api/playlist?type=primary&file=' + file)
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MEDIA_ATTACHED, function () {
+                video.play();
+            });
+            hls.on(Hls.Events.ERROR, function (event, data) {
+                console.log(data)
+            });
+        } else {
+            console.log('hls not supported')
+        }
+    </script>
+</body>
+
+</html>
