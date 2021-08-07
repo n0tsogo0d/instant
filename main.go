@@ -79,18 +79,6 @@ func handlePlaylist(w http.ResponseWriter, r *http.Request) {
 		var video ffmpeg.Stream
 		media := make([]m3u8.MediaItem, 0)
 
-		// this is hardcoded right now, will need to change in the future
-		media = append(media, m3u8.MediaItem{
-			Type:       m3u8.TypeAudio,
-			GroupID:    "stereo",
-			Name:       "English",
-			Language:   "en",
-			Default:    true,
-			Autoselect: true,
-			URI: fmt.Sprintf("playlist?type=audio&file=%s&bitrate=%d",
-				probe.Format.Filename, 194000),
-		})
-
 		// exract all subtitles
 		for _, s := range probe.Streams {
 			if s.CodecType != m3u8.CodecSubtitle {
@@ -126,7 +114,8 @@ func handlePlaylist(w http.ResponseWriter, r *http.Request) {
 		f2, _ := strconv.ParseFloat(split[1], 64)
 		framerate := f1 / f2
 
-		bitrate := 7_800_000
+		videoBitrate := 7_800_000
+		audioBitrate := 192_000
 		height := video.Height
 		width := video.Width
 
@@ -138,16 +127,16 @@ func handlePlaylist(w http.ResponseWriter, r *http.Request) {
 				{
 					Height:           height,
 					Width:            width,
-					AverageBandwidth: bitrate,
-					Bandwidth:        bitrate,
+					AverageBandwidth: videoBitrate,
+					Bandwidth:        videoBitrate,
 					Codecs:           "avc1.640029,mp4a.40.2",
 					Framerate:        framerate,
 					VideoRange:       "SDR",
 					Subtitles:        "subtitles",
-					Audio:            "stereo",
 					URI: fmt.Sprintf("playlist?type=video&file=%s&height=%d"+
-						"&width=%d&bitrate=%d", probe.Format.Filename, height,
-						width, bitrate),
+						"&width=%d&video_bitrate=%d&audio_bitrate=%d",
+						probe.Format.Filename, height, width, videoBitrate,
+						audioBitrate),
 				},
 			},
 		}
@@ -157,14 +146,16 @@ func handlePlaylist(w http.ResponseWriter, r *http.Request) {
 		duration := 6.00
 		height := q.Get("height")
 		width := q.Get("width")
-		bitrate := q.Get("bitrate")
+		videoBitrate := q.Get("video_bitrate")
+		audioBitrate := q.Get("audio_bitrate")
 
 		for _, v := range m3u8.PlaylistSegments(length, duration) {
 			segments = append(segments, m3u8.SegmentItem{
 				Duration: v[1],
 				URI: fmt.Sprintf("segment?type=video&file=%s&start=%.4f"+
-					"&duration=%.4f&height=%s&width=%s&bitrate=%s",
-					probe.Format.Filename, v[0], v[1], height, width, bitrate),
+					"&duration=%.4f&height=%s&width=%s&video_bitrate=%s"+
+					"&audio_bitrate=%s", probe.Format.Filename, v[0], v[1],
+					height, width, videoBitrate, audioBitrate),
 			})
 		}
 
@@ -186,27 +177,6 @@ func handlePlaylist(w http.ResponseWriter, r *http.Request) {
 				URI: fmt.Sprintf("segment?type=subtitle&file=%s&index=%s"+
 					"&start=%.4f&duration=%.4f", probe.Format.Filename, index,
 					v[0], v[1]),
-			})
-		}
-
-		playlist = m3u8.Playlist{
-			Version:        3,
-			Type:           "VOD",
-			TargetDuration: duration,
-			Segments:       segments,
-		}
-	case "audio":
-		length, _ := strconv.ParseFloat(probe.Format.Duration, 64)
-		duration := 60.0
-		bitrate := q.Get("bitrate")
-		segments := make([]m3u8.SegmentItem, 0)
-
-		for _, v := range m3u8.PlaylistSegments(length, duration) {
-			segments = append(segments, m3u8.SegmentItem{
-				Duration: v[1],
-				URI: fmt.Sprintf("segment?type=audio&file=%s&start=%.4f"+
-					"&duration=%.4f&bitrate=%s", probe.Format.Filename, v[0],
-					v[1], bitrate),
 			})
 		}
 
@@ -239,15 +209,17 @@ func handleSegment(w http.ResponseWriter, r *http.Request) {
 	case "video":
 		height, _ := strconv.Atoi(q.Get("height"))
 		width, _ := strconv.Atoi(q.Get("width"))
-		bitrate, _ := strconv.Atoi(q.Get("bitrate"))
+		videoBitrate, _ := strconv.Atoi(q.Get("video_bitrate"))
+		audioBitrate, _ := strconv.Atoi(q.Get("audio_bitrate"))
 
 		res, err = ffmpeg.CreateVideoSegment(ffmpeg.CreateVideoSegmentOptions{
-			Input:    input,
-			Start:    start,
-			Duration: duration,
-			Bitrate:  bitrate,
-			Height:   height,
-			Width:    width,
+			Input:        input,
+			Start:        start,
+			Duration:     duration,
+			VideoBitrate: videoBitrate,
+			AudioBitrate: audioBitrate,
+			Height:       height,
+			Width:        width,
 		})
 
 	case "subtitle":
@@ -258,15 +230,6 @@ func handleSegment(w http.ResponseWriter, r *http.Request) {
 			Start:    start,
 			Duration: duration,
 			Index:    index,
-		})
-	case "audio":
-		bitrate, _ := strconv.Atoi(q.Get("bitrate"))
-
-		res, err = ffmpeg.CreateAudioSegment(ffmpeg.CreateAudioSegmentOptions{
-			Input:    input,
-			Start:    start,
-			Duration: duration,
-			Bitrate:  bitrate,
 		})
 	default:
 		http.Error(w, "invalid segment type", http.StatusInternalServerError)

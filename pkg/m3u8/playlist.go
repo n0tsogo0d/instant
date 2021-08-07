@@ -62,7 +62,6 @@ type (
 		Codecs           string
 		Framerate        float64
 		Subtitles        string
-		Audio            string
 		URI              string
 		Width            int
 		Height           int
@@ -95,11 +94,6 @@ func (p Playlist) String() string {
 				"RESOLUTION=%dx%d,FRAME-RATE=%.3f",
 				p.Bandwidth, p.AverageBandwidth, p.VideoRange, p.Codecs,
 				p.Width, p.Height, p.Framerate)
-
-			// add audio if available
-			if len(p.Audio) > 0 {
-				str += fmt.Sprintf(",AUDIO=\"%s\"", p.Audio)
-			}
 
 			// add subtitle group if available
 			if len(p.Subtitles) > 0 {
