@@ -82,8 +82,8 @@ func handlePlaylist(w http.ResponseWriter, r *http.Request) {
 		// exract all subtitles
 		for _, s := range probe.Streams {
 			if s.CodecType != m3u8.CodecSubtitle {
-				// set video stream
-				if s.CodecType == m3u8.CodecVideo {
+				// set video stream if hasn't been set already
+				if s.CodecType == m3u8.CodecVideo && len(video.CodecType) == 0 {
 					video = s
 				}
 				continue
