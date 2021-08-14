@@ -1,5 +1,6 @@
-Online references (in no particular order, just like bookmarks) which I needed to create this project.
+# Online References
 
+Online references (in no particular order, just like bookmarks) which I needed to create this project.
 - https://luminarys.com/posts/writing-a-bittorrent-client.html
 - https://gist.github.com/CharlesHolbrow/8adfcf4915a9a6dd20b485228e16ead0
 - https://docs.peer5.com/guides/production-ready-hls-vod/
@@ -45,3 +46,17 @@ Online references (in no particular order, just like bookmarks) which I needed t
 - https://developer.apple.com/library/archive/documentation/QuickTime/QTFF/QTFFAppenG/QTFFAppenG.html
 - https://ffmpeg.org/ffmpeg-formats.html#segment
 - https://gist.github.com/steven2358/ba153c642fe2bb1e47485962df07c730
+- http://underpop.online.fr/f/ffmpeg/help/hls-2.htm.gz
+# Thoughts and ideas
+This is how jellyfin transcodes media.
+```
+/usr/lib/jellyfin-ffmpeg/ffmpeg -fflags +genpts -f matroska,webm -i file:"/XXXXXX.mkv" -map_metadata -1 -map_chapters -1 -threads 0 -map 0:0 -map 0:1 -map -0:s -codec:v:0 copy -bsf:v h264_mp4toannexb -vsync -1 -codec:a:0 aac -ac 2 -ab 384000 -af "volume=2" -copyts -avoid_negative_ts disabled -f hls -max_delay 5000000 -hls_time 6 -individual_header_trailer 0 -hls_segment_type mpegts -start_number 0 -hls_segment_filename "/config/data/transcodes/92f62516d14f6390b6ae3c93d0837690%d.ts" -hls_playlist_type vod -hls_list_size 0 -y "/config/data/transcodes/92f62516d14f6390b6ae3c93d0837690.m3u8"
+```
+```
+startInfo.Arguments = string.Format("-report -loglevel warning -hide_banner -progress pipe:2 -vsync passthrough -noaccurate_seek -copyts -ss 300.5 -i \"{0}\" -c:v libx264 -preset veryfast -b:v 80M -segment_time 10 -map 0 -segment_list pipe:1 -segment_list_type csv -f ssegment \"{1}\"", _sourceFile, _outputFilenameFormat);
+
+```
+```
+https://app.element.io/#/room/#jellyfin-dev:matrix.org/$gcdIn-SqsYS4O8qaLjGZrn7MRY4F5ir7cZRyIdhKmZw
+```
+https://gist.github.com/cvium/c5a65e92e426b29f9278ab404e8421a2
