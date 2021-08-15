@@ -47,6 +47,7 @@ Online references (in no particular order, just like bookmarks) which I needed t
 - https://ffmpeg.org/ffmpeg-formats.html#segment
 - https://gist.github.com/steven2358/ba153c642fe2bb1e47485962df07c730
 - http://underpop.online.fr/f/ffmpeg/help/hls-2.htm.gz
+- https://stackoverflow.com/questions/55460359/streaming-an-mkv-file-while-processing-with-ffmpeg
 # Thoughts and ideas
 This is how jellyfin transcodes media.
 ```

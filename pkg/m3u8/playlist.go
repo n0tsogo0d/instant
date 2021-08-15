@@ -62,6 +62,7 @@ type (
 		Codecs           string
 		Framerate        float64
 		Subtitles        string
+		Audio            string
 		URI              string
 		Width            int
 		Height           int
@@ -87,7 +88,6 @@ func (p Playlist) String() string {
 		}
 		str += "\n"
 
-		// todo work this out a bit better...
 		for _, p := range p.Playlists {
 			str += fmt.Sprintf("#EXT-X-STREAM-INF:BANDWIDTH=%d,"+
 				"AVERAGE-BANDWIDTH=%d,VIDEO-RANGE=%s,CODECS=\"%s\","+
@@ -98,6 +98,10 @@ func (p Playlist) String() string {
 			// add subtitle group if available
 			if len(p.Subtitles) > 0 {
 				str += fmt.Sprintf(",SUBTITLES=\"%s\"", p.Subtitles)
+			}
+			// add audio group if available
+			if len(p.Audio) > 0 {
+				str += fmt.Sprintf(",AUDIO=\"%s\"", p.Audio)
 			}
 
 			str += "\n"
